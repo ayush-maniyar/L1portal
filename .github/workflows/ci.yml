@@ -1,0 +1,47 @@
+name: L1 Portal CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v6
+
+      - name: Check required HTML file
+        run: test -f L1portalv1.html
+
+      - name: Validate basic HTML structure
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class PageParser(HTMLParser):
+              pass
+
+          html = Path("L1portalv1.html").read_text(encoding="utf-8")
+          parser = PageParser()
+          parser.feed(html)
+          parser.close()
+
+          assert "<html" in html.lower(), "Missing HTML element"
+          assert "</html>" in html.lower(), "Missing closing HTML element"
+          assert "<body" in html.lower(), "Missing body element"
+          assert "</body>" in html.lower(), "Missing closing body element"
+
+          print("HTML structure check passed.")
+          PY
