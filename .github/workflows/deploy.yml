@@ -1,0 +1,48 @@
+name: L1 Portal Static Preview
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "index.html"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Prepare static site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v6
+
+      - name: Check preview page exists
+        run: test -f index.html
+
+      - name: Upload static site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    name: Deploy preview to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish static site
+        id: deployment
+        uses: actions/deploy-pages@v4
