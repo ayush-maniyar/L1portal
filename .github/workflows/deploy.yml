@@ -27,10 +27,16 @@ jobs:
       - name: Check preview page exists
         run: test -f index.html
 
+      - name: Stage only the approved preview page
+        run: |
+          mkdir dist
+          cp index.html dist/index.html
+          test "$(find dist -maxdepth 1 -type f | wc -l)" -eq 1
+
       - name: Upload static site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
 
   deploy:
     name: Deploy preview to GitHub Pages
